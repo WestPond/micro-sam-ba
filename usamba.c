@@ -140,6 +140,11 @@ static bool verify_flash(int fd, const struct _chip* chip, const char* filename,
 	return true;
 }
 
+static bool reset(int fd, const struct _chip* chip)
+{
+	return samba_write_word(fd, 0xe000ed0c, 0x05fa0004);
+}
+
 static void usage(char* prog)
 {
 	printf("Usage: %s <port> (read|write|verify|erase-all|gpnvm) [args]*\n", prog);
@@ -159,6 +164,9 @@ static void usage(char* prog)
 	printf("- Getting/Setting/Clearing GPNVM:\n");
 	printf("    %s <port> gpnvm (get|set|clear) <gpnvm_number>\n", prog);
 	printf("\n");
+	printf("- Reset\n");
+	printf("    %s <port> reset\n", prog);
+	printf("\n");
 	printf("for all commands:\n");
 	printf("    <port> is the USB device node for the SAM-BA bootloader, for\n");
 	printf("         example '/dev/ttyACM0'\n");
@@ -174,6 +182,7 @@ enum {
 	CMD_GPNVM_GET = 5,
 	CMD_GPNVM_SET = 6,
 	CMD_GPNVM_CLEAR = 7,
+	CMD_RESET = 8,
 };
 
 int main(int argc, char *argv[])
@@ -246,6 +255,14 @@ int main(int argc, char *argv[])
 			} else {
 				fprintf(stderr, "Error: unknown GPNVM command '%s'\n", argv[3]);
 			}
+		} else {
+			fprintf(stderr, "Error: invalid number of arguments\n");
+		}
+	} else if (!strcmp(cmd_text, "reset")) {
+		fprintf(stderr, "Error: unknown command '%s'\n", cmd_text);
+		if (argc == 3) {
+			command = CMD_RESET;
+			err = false;
 		} else {
 			fprintf(stderr, "Error: invalid number of arguments\n");
 		}
@@ -358,6 +375,15 @@ int main(int argc, char *argv[])
 		{
 			printf("Clearing GPNVM%d\n", addr);
 			if (eefc_clear_gpnvm(fd, chip, addr)) {
+				err = false;
+			}
+			break;
+		}
+
+		case CMD_RESET:
+		{
+			printf("Resetting device\n");
+			if (reset(fd, chip)) {
 				err = false;
 			}
 			break;
