@@ -142,7 +142,8 @@ static bool verify_flash(int fd, const struct _chip* chip, const char* filename,
 
 static bool reset(int fd, const struct _chip* chip)
 {
-	return samba_write_word(fd, 0xe000ed0c, 0x05fa0004);
+//	return samba_write_word(fd, 0xe000ed0c, 0x05fa0004);
+	return samba_write_word(fd, 0x400e1800, 0xa5000001);
 }
 
 static void usage(char* prog)
